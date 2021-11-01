@@ -10,5 +10,5 @@ ADD spring-prod /spring-prod
 
 
 #ENTRYPOINT ["sh", "-c", "java -javaagent:/spring-prod/scouter.agent.jar -Dscouter.config=/spring-prod/conf/scouter.conf -Dobj_name=k8s_pod1 -jar /sample.jar"]
-ENTRYPOINT ["sh", "-c", "java -javaagent:/spring-prod/scouter.agent.jar -Dscouter.config=/spring-prod/conf/scouter.conf -jar /sample.jar"]
+ENTRYPOINT ["sh", "-c", "java -javaagent:/spring-prod/scouter.agent.jar -Dscouter.config=/spring-prod/conf/scouter.conf -Dmonitoring_group_type=meme1 -jar /sample.jar"]
 #ENTRYPOINT ["java","-jar","/sample.jar"]
