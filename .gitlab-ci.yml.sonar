@@ -1,0 +1,44 @@
+stages:
+  - test
+  - build
+  - deploy
+  - argocd-change
+
+sonarqube:
+  stage: test
+  script:
+    - /opt/sonar-scanner-4.6.0.2311-linux/bin/sonar-scanner -Dsonar.projectKey=my:app -Dsonar.projectName='my app' -Dsonar.projectVersion=1.0 -Dsonar.sources=./src -Dsonar.java.binaries=. -Dsonar.host.url=http://192.168.56.100:9000 -Dsonar.login=e9f567dc96a30654bb3e368bb955dfba80920499
+
+
+maven-build:
+  stage: build
+  script:
+    - /opt/apache-maven-3.8.1/bin/mvn clean package
+  artifacts:
+    paths:
+     - target/
+
+
+docker-deploy:
+  stage: deploy
+  variables:
+    IMAGE_NAME: han2000w/sample:v$CI_PIPELINE_ID
+  script:
+    - docker login -u han2000w -p gkstkdwls
+    - docker build . -t $IMAGE_NAME
+    - docker push $IMAGE_NAME
+
+argocd-change:
+  stage: argocd-change
+  variables:
+    IMAGE_NAME: han2000w/sample:v$CI_PIPELINE_ID
+  script:
+    - git clone https://andrew.han:gkstkdwls@192.168.56.150:8000/andrew.han/guestbook-deploy.git
+    - cd guestbook-deploy
+    - kustomize edit set image $IMAGE_NAME
+    - kustomize build . -o guestbook-ui-deployment.yaml
+    - git config --global user.name andrew.han
+    - git config --global user.email andrew.han@osckorea.com
+    - git add .
+    - git commit -m "commit no $CI_PIPELINE_ID"
+    - git push https://andrew.han:gkstkdwls@192.168.56.150:8000/andrew.han/guestbook-deploy.git

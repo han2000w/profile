@@ -1,0 +1,31 @@
+stages:
+  - build
+  - deploy
+
+maven-build:
+  stage: build
+  image: maven:3.8.2-openjdk-11
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+     - target/
+
+
+docker-deploy:
+  stage: deploy
+  image: docker:20-dind
+  variables:
+    IMAGE_NAME: han2000w/sample:v$CI_PIPELINE_ID
+    DOCKER_HOST: tcp://docker:2375    
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - name: docker:20-dind
+      alias: docker
+      command: ["--tls=false"]
+  before_script:
+   - docker login -u han2000w -p gkstkdwls 
+  script:
+    - docker build . -t $IMAGE_NAME
+    - docker push $IMAGE_NAME
